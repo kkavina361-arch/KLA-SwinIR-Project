@@ -1,61 +1,53 @@
-KLA SwinIR
-AI-Based Restoration of Degraded Semiconductor Inspection Images
+# KLA SwinIR
+
+### AI-Based Restoration of Degraded Semiconductor Inspection Images
 
 A SwinIR-based image restoration pipeline developed for the KLA Hackathon PS01 challenge.
 
-The project focuses on restoring degraded grayscale semiconductor inspection images while performing 2× super-resolution in a single inference pipeline.
+**Input:** 128 × 128 grayscale  
+**Output:** 256 × 256 grayscale  
+**Upscaling:** 2×  
+**Model:** Customized SwinIR
 
-Overview
+---
+
+## Overview
 
 High-quality inspection images are important for preserving small structures and visual details during semiconductor analysis.
 
-In practical imaging conditions, images can be affected by:
+The project focuses on restoring degraded grayscale semiconductor inspection images affected by noise and reduced spatial resolution.
 
-Speckle noise
-Gaussian noise
-Reduced spatial resolution
-Loss of fine structural information
-Combined noise and downsampling degradation
+### Target Configuration
 
-This project addresses the restoration problem by learning a direct mapping from a degraded low-resolution image to its clean high-resolution counterpart.
+| Property | Value |
+|---|---|
+| Input | 128 × 128 grayscale |
+| Output | 256 × 256 grayscale |
+| Upscaling | 2× |
+| Model | Customized SwinIR |
+| Framework | PyTorch |
 
-Target Configuration
-Property	Value
-Input	128 × 128 grayscale
-Output	256 × 256 grayscale
-Upscaling	2×
-Model	Customized SwinIR
-Framework	PyTorch
-Approach
+---
 
-The project uses a customized SwinIR (Swin Transformer for Image Restoration) architecture.
+## Approach
 
-SwinIR uses hierarchical Transformer blocks with shifted-window attention to model local image structures efficiently. For this project, the architecture was configured as a compact restoration model for grayscale 2× super-resolution.
+The project uses a customized **SwinIR (Swin Transformer for Image Restoration)** architecture.
 
-Processing Flow
+The main processing flow is:
+
+```text
 Degraded LR Image
-       │
-       ▼
+       ↓
 Input Processing
-       │
-       ▼
+       ↓
 Customized SwinIR
-       │
-       ├── Swin Transformer Blocks
-       ├── Shifted-Window Attention
-       ├── Residual Learning
-       └── PixelShuffle Upsampling
-       │
-       ▼
+       ↓
 Restoration + 2× Super-Resolution
-       │
-       ▼
+       ↓
 Restored HR Image
-       │
-       ├── .npy → Float32 benchmark output
-       └── .png → Visual output
-
-The model performs restoration and 2× super-resolution within a single inference pipeline.
+       ↓
+.n
+py / .png outputs
 
 Model Configuration
 Parameter	Value
@@ -68,14 +60,10 @@ Attention heads	[3, 3, 3, 3]
 MLP ratio	2
 Upsampler	PixelShuffle
 Residual connection	1conv
-
-The configuration was selected to balance restoration capability and inference efficiency.
-
 Training
 
 The model was trained using paired degraded low-resolution images and clean high-resolution ground-truth images.
 
-Training Configuration
 Parameter	Value
 Optimizer	Adam
 Maximum iterations	1000
@@ -92,79 +80,60 @@ The final training setup combines L1 reconstruction loss with an SSIM-based stru
 
 Total Loss = L1 Loss + 0.1 × SSIM Loss
 
-L1 loss helps maintain pixel-level accuracy, while the SSIM component encourages preservation of structural information.
-
 Final Model
 
-The submitted checkpoint is:
+Checkpoint: checkpoints/l1_ssim_aug_1000iter_G.pth
 
-checkpoints/l1_ssim_aug_1000iter_G.pth
-
-Checkpoint size:
-
-18.54 MB
-
-The checkpoint is loaded directly by the evaluation pipeline.
+Size: 18.54 MB
 
 Evaluation
 
-The repository includes a standalone evaluation script:
+The repository includes a standalone evaluate.py script.
 
-evaluate.py
+The evaluation pipeline:
 
-The evaluation script:
-
-Loads the trained SwinIR checkpoint.
+Loads the trained checkpoint.
 Reads the degraded input images.
-Runs the model on the available device.
-Produces restored floating-point outputs.
-Saves the results in .npy and .png formats.
+Runs model inference.
+Generates restored floating-point outputs.
+Saves .npy and .png results.
 Reports inference timing.
 
-The evaluation code automatically uses CUDA when a CUDA-enabled PyTorch environment is available and otherwise falls back to CPU.
+The script uses CUDA when a CUDA-enabled PyTorch environment is available and otherwise falls back to CPU.
 
 Local Verification
-
-The evaluation pipeline was tested in a separate environment before submission.
-
 Metric	Result
 Images processed	400
 NPY outputs	400
 PNG outputs	400
 Failed images	0
 
-Local CPU verification:
+Total inference time: 206.2167 s
 
-Total inference time : 206.2167 s
-Average per image    : 515.542 ms
+Average per image: 515.542 ms
 
-This is a local CPU measurement and is not an H100 benchmark result.
+The reported timing is from the local CPU verification environment and is not an H100 benchmark.
 
 Running the Evaluation
 
-Install the required packages:
+Install the dependencies:
 
 pip install -r requirements.txt
 
-Run the evaluation script:
+Run the evaluation:
 
 python evaluate.py --model_path checkpoints/l1_ssim_aug_1000iter_G.pth --input_dir path/to/test/NoisyLR --output_dir restored_outputs
-
-The model checkpoint, input directory and output directory can be supplied through the command line.
-
 Output Format
-
-For each processed input image:
-
 Format	Purpose
 .npy	Float32 output for quantitative benchmarking
 .png	Visual output for inspection
 
-Submitted configuration:
+Input: 128 × 128 grayscale
 
-Input  : 128 × 128 grayscale
-Output : 256 × 256 grayscale
-Scale  : 2×
+Output: 256 × 256 grayscale
+
+Scale: 2×
+
 Repository Structure
 KLA-SwinIR-Project/
 │
@@ -179,7 +148,6 @@ KLA-SwinIR-Project/
 │   ├── models/
 │   │   ├── network_swinir.py
 │   │   └── loss_ssim.py
-│   │
 │   └── train_l1ssim_aug_cpu.py
 │
 ├── configs/
@@ -244,11 +212,5 @@ KLA Hackathon – PS01
 Task: AI-Based Restoration of Degraded Images for Semiconductor Inspection
 
 Model: Customized SwinIR
-
-Input: 128 × 128 grayscale
-
-Output: 256 × 256 grayscale
-
-Upscaling: 2×
 
 Final Checkpoint: l1_ssim_aug_1000iter_G.pth
