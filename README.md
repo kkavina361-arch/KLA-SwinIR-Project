@@ -1,228 +1,85 @@
-\# AI-Based Restoration of Degraded Semiconductor Inspection Images
+# KLA SwinIR – Semiconductor Image Restoration
 
+## KLA Hackathon – PS01
 
+An AI-based image restoration pipeline for degraded grayscale semiconductor inspection images, built around a customized SwinIR model for 2× super-resolution and image restoration.
 
-\## KLA Hackathon – PS01
+---
 
+## Overview
 
+Semiconductor inspection depends on high-quality images to preserve small structures and important visual details.
 
-This project presents an AI-based image restoration pipeline designed for degraded grayscale semiconductor inspection images. The objective is to recover clean, high-resolution images from inputs affected by noise and spatial resolution reduction while preserving fine structural details that may be important during semiconductor inspection.
+In practical imaging conditions, images can be affected by:
 
+- Speckle noise
+- Gaussian noise
+- Reduced spatial resolution
+- Loss of fine structural information
+- Combined noise and downsampling degradation
 
+This project addresses the restoration problem by learning a direct mapping from a degraded low-resolution image to its clean high-resolution counterpart.
 
-The solution is based on a lightweight customized \*\*SwinIR (Swin Transformer for Image Restoration)\*\* model and performs \*\*2× super-resolution and restoration in a single inference pipeline\*\*.
+**Input:** 128 × 128 grayscale image  
+**Output:** 256 × 256 restored grayscale image  
+**Upscaling:** 2×
 
+---
 
+## Approach
 
-\---
+The project uses a customized **SwinIR (Swin Transformer for Image Restoration)** architecture.
 
+SwinIR uses hierarchical Transformer blocks with shifted-window attention to model both local and broader image structures. For this project, the architecture was configured as a compact restoration model suitable for the target task.
 
+### Model Configuration
 
-\## Problem Statement
+| Parameter | Configuration |
+|---|---|
+| Input channels | 1 |
+| Upscaling factor | 2× |
+| Window size | 8 |
+| Embedding dimension | 60 |
+| Transformer depths | [2, 2, 2, 2] |
+| Attention heads | [3, 3, 3, 3] |
+| MLP ratio | 2 |
+| Upsampler | PixelShuffle |
+| Residual connection | 1conv |
 
+The model performs restoration and 2× super-resolution within a single inference pipeline.
 
+---
 
-Semiconductor inspection relies on high-quality microscopic images for identifying and analysing small structures and potential defects.
+## Training
 
+The model was trained using paired degraded low-resolution images and clean high-resolution ground-truth images.
 
+### Training Configuration
 
-In practical imaging conditions, inspection images may suffer from:
+- Optimizer: Adam
+- Maximum iterations: 1000
+- Learning rate: 1e-5
+- Random seed: 42
+- Input: degraded low-resolution images
+- Target: clean high-resolution images
 
+### Loss Function
 
+The final training setup combines:
 
-\- Speckle noise
+**L1 reconstruction loss + SSIM-based structural loss**
 
-\- Gaussian noise
+The SSIM contribution uses a weight of **0.1**.
 
-\- Loss of fine structural information
+L1 loss helps maintain pixel-level accuracy, while the SSIM component encourages preservation of structural information.
 
-\- Spatial resolution reduction
+Data augmentation was also used during training to improve robustness.
 
-\- Combined noise and downsampling
+---
 
+## Evaluation
 
-
-The challenge is to reconstruct the corresponding clean, high-resolution image while avoiding excessive smoothing or artificial image structures.
-
-
-
-The model therefore learns the mapping:
-
-
-
-Degraded Low-Resolution Image → Restored High-Resolution Image
-
-
-
-For the submitted configuration:
-
-
-
-\- Input: `128 × 128` grayscale image
-
-\- Output: `256 × 256` restored grayscale image
-
-\- Upscaling factor: `2×`
-
-
-
-\---
-
-
-
-\## Proposed Approach
-
-
-
-We use a customized \*\*SwinIR\*\* architecture based on Swin Transformer blocks.
-
-
-
-Instead of performing denoising and super-resolution as completely separate stages, the network learns a direct transformation from the degraded low-resolution input to the clean high-resolution target.
-
-
-
-The submitted model configuration uses:
-
-
-
-\- Input channels: `1`
-
-\- Upscaling factor: `2`
-
-\- Window size: `8`
-
-\- Embedding dimension: `60`
-
-\- Transformer depths: `\[2, 2, 2, 2]`
-
-\- Attention heads: `\[3, 3, 3, 3]`
-
-\- MLP ratio: `2`
-
-\- Upsampler: `PixelShuffle`
-
-\- Residual connection: `1conv`
-
-
-
-This compact configuration was selected to balance restoration quality and inference efficiency.
-
-
-
-\---
-
-
-
-\## Training Strategy
-
-
-
-The model was trained using paired degraded and ground-truth grayscale images.
-
-
-
-The final training configuration used:
-
-
-
-\- Maximum iterations: `1000`
-
-\- Learning rate: `1e-5`
-
-\- Random seed: `42`
-
-\- Optimizer: Adam
-
-\- Training input: degraded low-resolution images
-
-\- Training target: clean high-resolution ground-truth images
-
-
-
-\### Loss Function
-
-
-
-The final model combines pixel reconstruction and structural similarity objectives.
-
-
-
-The training objective uses:
-
-
-
-\*\*L1 reconstruction loss + SSIM-based structural loss\*\*
-
-
-
-with:
-
-
-
-\- SSIM weight: `0.1`
-
-
-
-L1 loss encourages accurate pixel-level reconstruction, while the SSIM component encourages preservation of structural information and local image characteristics.
-
-
-
-Data augmentation is also used during training to improve robustness and reduce dependence on individual training-image orientations.
-
-
-
-\---
-
-
-
-\## Repository Structure
-
-
+The repository includes a standalone evaluation script:
 
 ```text
-
-KLA-SwinIR-Project/
-
-│
-
-├── evaluate.py
-
-├── requirements.txt
-
-├── README.md
-
-│
-
-├── checkpoints/
-
-│   └── l1\_ssim\_aug\_1000iter\_G.pth
-
-│
-
-├── KAIR/
-
-│   ├── models/
-
-│   │   └── network\_swinir.py
-
-│   ├── train\_l1ssim\_aug\_cpu.py
-
-│   └── ...
-
-│
-
-└── submission/
-
-&#x20;   └── test\_outputs/
-
-&#x20;       ├── 000000.npy
-
-&#x20;       ├── 000000.png
-
-&#x20;       ├── ...
-
-&#x20;       ├── 000399.npy
-
-&#x20;       └── 000399.png
-
+evaluate.py
