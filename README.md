@@ -1,16 +1,20 @@
-# KLA SwinIR – Semiconductor Image Restoration
+# KLA SwinIR
 
-## KLA Hackathon – PS01
+### AI-Based Restoration of Degraded Semiconductor Inspection Images
 
-An AI-based image restoration pipeline for degraded grayscale semiconductor inspection images, built around a customized SwinIR model for 2× super-resolution and image restoration.
+A SwinIR-based image restoration pipeline developed for the KLA Hackathon PS01 challenge.
+
+The project focuses on restoring degraded grayscale semiconductor inspection images while performing 2× super-resolution in a single inference pipeline.
+
+![KLA SwinIR Architecture](architecture.png)
 
 ---
 
-## Overview
+## 1. Project Overview
 
-Semiconductor inspection depends on high-quality images to preserve small structures and important visual details.
+High-quality inspection images are important for preserving small structures and visual details during semiconductor analysis.
 
-In practical imaging conditions, images can be affected by:
+Real-world imaging conditions can introduce:
 
 - Speckle noise
 - Gaussian noise
@@ -18,68 +22,52 @@ In practical imaging conditions, images can be affected by:
 - Loss of fine structural information
 - Combined noise and downsampling degradation
 
-This project addresses the restoration problem by learning a direct mapping from a degraded low-resolution image to its clean high-resolution counterpart.
+This project learns a direct mapping from a degraded low-resolution image to its clean high-resolution counterpart.
 
-**Input:** 128 × 128 grayscale image  
-**Output:** 256 × 256 restored grayscale image  
-**Upscaling:** 2×
-
----
-
-## Approach
-
-The project uses a customized **SwinIR (Swin Transformer for Image Restoration)** architecture.
-
-SwinIR uses hierarchical Transformer blocks with shifted-window attention to model both local and broader image structures. For this project, the architecture was configured as a compact restoration model suitable for the target task.
-
-### Model Configuration
-
-| Parameter | Configuration |
+| Property | Configuration |
 |---|---|
-| Input channels | 1 |
-| Upscaling factor | 2× |
-| Window size | 8 |
-| Embedding dimension | 60 |
-| Transformer depths | [2, 2, 2, 2] |
-| Attention heads | [3, 3, 3, 3] |
-| MLP ratio | 2 |
-| Upsampler | PixelShuffle |
-| Residual connection | 1conv |
-
-The model performs restoration and 2× super-resolution within a single inference pipeline.
+| Input | 128 × 128 grayscale |
+| Output | 256 × 256 grayscale |
+| Upscaling | 2× |
+| Model | Customized SwinIR |
+| Framework | PyTorch |
 
 ---
 
-## Training
+## 2. System Architecture
 
-The model was trained using paired degraded low-resolution images and clean high-resolution ground-truth images.
-
-### Training Configuration
-
-- Optimizer: Adam
-- Maximum iterations: 1000
-- Learning rate: 1e-5
-- Random seed: 42
-- Input: degraded low-resolution images
-- Target: clean high-resolution images
-
-### Loss Function
-
-The final training setup combines:
-
-**L1 reconstruction loss + SSIM-based structural loss**
-
-The SSIM contribution uses a weight of **0.1**.
-
-L1 loss helps maintain pixel-level accuracy, while the SSIM component encourages preservation of structural information.
-
-Data augmentation was also used during training to improve robustness.
-
----
-
-## Evaluation
-
-The repository includes a standalone evaluation script:
+The complete restoration pipeline follows this flow:
 
 ```text
-evaluate.py
+                 KLA SwinIR Restoration Pipeline
+
+     Degraded Low-Resolution Image
+                128 × 128
+                    │
+                    ▼
+          ┌──────────────────┐
+          │ Input Processing │
+          └────────┬─────────┘
+                   │
+                   ▼
+       ┌──────────────────────────┐
+       │     Customized SwinIR    │
+       │                          │
+       │  Swin Transformer Blocks │
+       │  Shifted-Window Attention│
+       │  Residual Learning       │
+       │  PixelShuffle Upsampling │
+       └────────────┬─────────────┘
+                    │
+                    ▼
+          Restoration + 2× SR
+                    │
+                    ▼
+          Restored High-Resolution
+                256 × 256
+                    │
+             ┌──────┴──────┐
+             │             │
+             ▼             ▼
+           .npy           .png
+        Float32 Output   Visual Output
