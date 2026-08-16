@@ -1,53 +1,53 @@
-# KLA SwinIR
-
-### AI-Based Restoration of Degraded Semiconductor Inspection Images
+KLA SwinIR
+AI-Based Restoration of Degraded Semiconductor Inspection Images
 
 A SwinIR-based image restoration pipeline developed for the KLA Hackathon PS01 challenge.
 
-**Input:** 128 × 128 grayscale  
-**Output:** 256 × 256 grayscale  
-**Upscaling:** 2×  
-**Model:** Customized SwinIR
+The project focuses on restoring degraded grayscale semiconductor inspection images while performing 2× super-resolution in a single inference pipeline.
 
----
+Input: 128 × 128 grayscale
+Output: 256 × 256 grayscale
+Upscaling: 2×
+Model: Customized SwinIR
 
-## Overview
+Overview
 
 High-quality inspection images are important for preserving small structures and visual details during semiconductor analysis.
 
 The project focuses on restoring degraded grayscale semiconductor inspection images affected by noise and reduced spatial resolution.
 
-### Target Configuration
+Target Configuration
+Property	Value
+Input	128 × 128 grayscale
+Output	256 × 256 grayscale
+Upscaling	2×
+Model	Customized SwinIR
+Framework	PyTorch
+Approach
 
-| Property | Value |
-|---|---|
-| Input | 128 × 128 grayscale |
-| Output | 256 × 256 grayscale |
-| Upscaling | 2× |
-| Model | Customized SwinIR |
-| Framework | PyTorch |
+The project uses a customized SwinIR (Swin Transformer for Image Restoration) architecture.
 
----
+SwinIR uses hierarchical Transformer blocks with shifted-window attention to model local image structures efficiently. For this project, the architecture was configured as a compact restoration model for grayscale 2× super-resolution.
 
-## Approach
-
-The project uses a customized **SwinIR (Swin Transformer for Image Restoration)** architecture.
-
-The main processing flow is:
-
-```text
+Processing Flow
 Degraded LR Image
-       ↓
+       │
+       ▼
 Input Processing
-       ↓
+       │
+       ▼
 Customized SwinIR
-       ↓
+       │
+       ▼
 Restoration + 2× Super-Resolution
-       ↓
+       │
+       ▼
 Restored HR Image
-       ↓
-.n
-py / .png outputs
+       │
+       ├── .npy → Float32 benchmark output
+       └── .png → Visual output
+
+The model performs restoration and 2× super-resolution within a single inference pipeline.
 
 Model Configuration
 Parameter	Value
@@ -60,10 +60,14 @@ Attention heads	[3, 3, 3, 3]
 MLP ratio	2
 Upsampler	PixelShuffle
 Residual connection	1conv
+
+The configuration was selected to balance restoration capability and inference efficiency.
+
 Training
 
 The model was trained using paired degraded low-resolution images and clean high-resolution ground-truth images.
 
+Training Configuration
 Parameter	Value
 Optimizer	Adam
 Maximum iterations	1000
@@ -80,11 +84,17 @@ The final training setup combines L1 reconstruction loss with an SSIM-based stru
 
 Total Loss = L1 Loss + 0.1 × SSIM Loss
 
+L1 loss helps maintain pixel-level accuracy, while the SSIM component encourages preservation of structural information.
+
 Final Model
 
-Checkpoint: checkpoints/l1_ssim_aug_1000iter_G.pth
+The submitted checkpoint is:
 
-Size: 18.54 MB
+checkpoints/l1_ssim_aug_1000iter_G.pth
+
+Checkpoint size: 18.54 MB
+
+The checkpoint is loaded directly by the evaluation pipeline.
 
 Evaluation
 
@@ -92,7 +102,7 @@ The repository includes a standalone evaluate.py script.
 
 The evaluation pipeline:
 
-Loads the trained checkpoint.
+Loads the trained SwinIR checkpoint.
 Reads the degraded input images.
 Runs model inference.
 Generates restored floating-point outputs.
@@ -102,6 +112,9 @@ Reports inference timing.
 The script uses CUDA when a CUDA-enabled PyTorch environment is available and otherwise falls back to CPU.
 
 Local Verification
+
+The evaluation pipeline was tested in a separate environment before submission.
+
 Metric	Result
 Images processed	400
 NPY outputs	400
@@ -129,9 +142,7 @@ Format	Purpose
 .png	Visual output for inspection
 
 Input: 128 × 128 grayscale
-
 Output: 256 × 256 grayscale
-
 Scale: 2×
 
 Repository Structure
@@ -204,13 +215,15 @@ References
 
 This project builds on:
 
-SwinIR — Image Restoration Using Swin Transformer
+SwinIR — Swin Transformer for Image Restoration
 KAIR — Image Restoration Toolbox
 PyTorch
 KLA Hackathon – PS01
 
-Task: AI-Based Restoration of Degraded Images for Semiconductor Inspection
+Task: AI-Based Restoration of Degraded Images for Semiconductor Inspection**
 
 Model: Customized SwinIR
-
+Input: 128 × 128 grayscale
+Output: 256 × 256 grayscale
+Upscaling: 2×
 Final Checkpoint: l1_ssim_aug_1000iter_G.pth
